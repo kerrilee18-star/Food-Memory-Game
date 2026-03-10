@@ -26,7 +26,6 @@
         }
 
         .screen { width: 100%; max-width: 650px; text-align: center; }
-
         h1 { color: #2d3436; margin-bottom: 5px; font-size: 1.8rem; }
         .subtitle { margin-bottom: 25px; color: #636e72; font-weight: bold; }
         
@@ -40,7 +39,6 @@
         .lvl-btn .en { font-size: 1.2rem; font-weight: bold; }
         .lvl-btn .he { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
 
-        /* HEADER & SCORE KEEPER */
         #game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; gap: 10px; }
         .stats { display: flex; gap: 8px; flex-grow: 1; justify-content: center; }
         .stat-box { background: white; padding: 5px 10px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; min-width: 80px; }
@@ -72,16 +70,16 @@
             background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center;
         }
         .win-box { 
-            background: white; padding: 40px; border-radius: 20px; text-align: center;
+            background: white; padding: 30px; border-radius: 20px; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
         }
-        @keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
+        .best-score { color: var(--secondary); font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
         .play-again-btn { background: var(--secondary); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; margin-top: 20px; font-weight: bold; }
 
         @media (max-width: 500px) {
             .grid.large { grid-template-columns: repeat(4, 1fr); }
             .emoji { font-size: 1.6rem; }
-            .word { font-size: 0.6rem; }
         }
     </style>
 </head>
@@ -101,24 +99,12 @@
 
     <div id="game-screen" class="screen" style="display:none;">
         <div id="game-header">
-            <button class="nav-btn back-btn" onclick="showMenu()">
-                <span>⬅ Menu</span>
-                <span>תפריט</span>
-            </button>
+            <button class="nav-btn back-btn" onclick="showMenu()"><span>⬅ Menu</span><span>תפריט</span></button>
             <div class="stats">
-                <div class="stat-box">
-                    <span class="stat-label">🕒 Time / זמן</span>
-                    <span id="timer" class="stat-value">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">⭐ Score / ניקוד</span>
-                    <span class="stat-value"><span id="score">0</span>/<span id="total-pairs">8</span></span>
-                </div>
+                <div class="stat-box"><span class="stat-label">🕒 Time / זמן</span><span id="timer" class="stat-value">0</span></div>
+                <div class="stat-box"><span class="stat-label">⭐ Score / ניקוד</span><span class="stat-value"><span id="score">0</span>/<span id="total-pairs">8</span></span></div>
             </div>
-            <button class="nav-btn hint-btn" onclick="useHint()">
-                <span>💡 Hint</span>
-                <span>רמז</span>
-            </button>
+            <button class="nav-btn hint-btn" onclick="useHint()"><span>💡 Hint</span><span>רמז</span></button>
         </div>
         <div id="game-board" class="grid"></div>
     </div>
@@ -127,7 +113,9 @@
         <div class="win-box">
             <h2>🎉 GOOD JOB! 🎉</h2>
             <h3>כל הכבוד!</h3>
-            <p>Time: <span id="final-time">0</span>s / שניות</p>
+            <p>Your Time: <span id="final-time">0</span>s / שניות</p>
+            <div id="new-best" style="display:none; color: gold; font-weight: bold;">🏆 NEW BEST SCORE! / שיא חדש! 🏆</div>
+            <div class="best-score">Personal Best / שיא אישי: <span id="record-display">--</span>s</div>
             <button class="play-again-btn" onclick="resetGame()">Play Again / שחק שוב</button>
         </div>
     </div>
@@ -136,49 +124,35 @@
         const levels = {
             1: [{name:'Apple', emoji:'🍎'}, {name:'Banana', emoji:'🍌'}, {name:'Carrot', emoji:'🥕'}, {name:'Corn', emoji:'🌽'}, {name:'Hamburger', emoji:'🍔'}, {name:'Salad', emoji:'🥗'}, {name:'Ice Cream', emoji:'🍦'}, {name:'Cake', emoji:'🍰'}],
             2: [{name:'Grapes', emoji:'🍇'}, {name:'Orange', emoji:'🍊'}, {name:'Cucumber', emoji:'🥒'}, {name:'Tomato', emoji:'🍅'}, {name:'Bread', emoji:'🍞'}, {name:'Steak', emoji:'🥩'}, {name:'Cookie', emoji:'🍪'}, {name:'Candy', emoji:'🍬'}],
-            3: [{name:'Pear', emoji:'🍐'}, {name:'Cherries', emoji:'🍒'}, {name:'Peas', emoji:'🫛'}, {name:'Lettuce', emoji:'🥬'}, {name:'Butter', emoji:'🧈'}, {name:'Hot Dog', emoji:'🌭'}, {name:'Pie', emoji:'🥧'}, {name:'Pineapple', emoji:'🍍'}, {name:'Fried Egg', emoji:'🍳'}, {name:'Bagel', emoji:'🥯'}],
-            4: [{name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🍠'}, {name:'Dumpling', emoji:'🥟'}, {name:'Ginger', emoji:'🫚'}, {name:'Peanuts', emoji:'🥜'}, {name:'Red Beans', emoji:'🫘'}, {name:'Lime', emoji:'🍋‍🟩'}, {name:'Fortune Cookie', emoji:'🥠'}]
+            3: [{name:'Pear', emoji:'🍐'}, {name:'Cherries', emoji:'🍒'}, {name:'Peas', emoji:'🫛'}, {name:'Lettuce', emoji:'🥬'}, {name:'Honey', emoji:'🍯'}, {name:'Hot Dog', emoji:'🌭'}, {name:'Pie', emoji:'🥧'}, {name:'Pineapple', emoji:'🍍'}, {name:'Fried Egg', emoji:'🍳'}, {name:'Bagel', emoji:'🥯'}],
+            4: [{name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🍠'}, {name:'Dumpling', emoji:'🥟'}, {name:'Ginger', emoji:'🫚'}, {name:'Olive', emoji:'🫒'}, {name:'Red Beans', emoji:'🫘'}, {name:'Lime', emoji:'🍋‍🟩'}, {name:'Fortune Cookie', emoji:'🥠'}]
         };
 
-        let currentLevel = 1, flippedCards = [], matchedPairs = 0, seconds = 0, timerInterval, canFlip = true;
-        let selectedVoice = null;
+        let currentLevel = 1, flippedCards = [], matchedPairs = 0, seconds = 0, timerInterval, canFlip = true, selectedVoice = null;
 
         function loadVoices() {
             let voices = window.speechSynthesis.getVoices();
-            // Priority: Google US English -> Samantha -> Any en-US
-            selectedVoice = voices.find(v => v.name === 'Google US English') || 
-                            voices.find(v => v.name === 'Samantha') || 
-                            voices.find(v => v.lang === 'en-US');
+            selectedVoice = voices.find(v => v.name.includes('Google') && v.lang === 'en-US') || voices.find(v => v.lang === 'en-US');
         }
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
         function speak(text) {
             window.speechSynthesis.cancel();
+            let phoneticText = text;
             
-            // PHONETIC BOOSTING: 
-            // We add a period and space to force the voice to emphasize the final consonant.
-            let phoneticText = text + "."; 
-            
-            // Special handling for "Butter" to make the 'tt' sound sharper
-            if(text.toLowerCase() === 'butter') phoneticText = "But-ter.";
-            
+            // SHARP CONSONANT TRICK
+            if(text.toLowerCase() === 'carrot') phoneticText = "Carrot-t.";
+            else if(text.toLowerCase() === 'cake') phoneticText = "Cake-k.";
+            else if(text.toLowerCase() === 'steak') phoneticText = "Steak-k.";
+            else phoneticText = text + ".";
+
             const msg = new SpeechSynthesisUtterance(phoneticText);
             msg.lang = 'en-US';
             if (selectedVoice) msg.voice = selectedVoice;
-            
-            msg.rate = 0.7;  // Slower for maximum clarity
-            msg.pitch = 1.0; 
-            msg.volume = 1.0; 
-            
+            msg.rate = 0.65; // Slower for absolute clarity
+            msg.pitch = 1.0;
             window.speechSynthesis.speak(msg);
-        }
-
-        function showMenu() {
-            clearInterval(timerInterval);
-            document.getElementById('main-menu').style.display = 'block';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('win-overlay').style.display = 'none';
         }
 
         function startGame(lvl) {
@@ -186,6 +160,13 @@
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             resetGame();
+        }
+
+        function showMenu() {
+            clearInterval(timerInterval);
+            document.getElementById('main-menu').style.display = 'block';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('win-overlay').style.display = 'none';
         }
 
         function resetGame() {
@@ -228,17 +209,31 @@
                 matchedPairs++;
                 document.getElementById('score').innerText = matchedPairs;
                 flippedCards = []; canFlip = true;
-                if (matchedPairs === levels[currentLevel].length) {
-                    setTimeout(() => {
-                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                        document.getElementById('final-time').innerText = seconds;
-                        document.getElementById('win-overlay').style.display = 'flex';
-                        speak("Great job!");
-                    }, 500);
-                }
+                if (matchedPairs === levels[currentLevel].length) handleWin();
             } else {
                 setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; canFlip = true; }, 1000);
             }
+        }
+
+        function handleWin() {
+            clearInterval(timerInterval);
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            
+            const bestKey = `best_lvl_${currentLevel}`;
+            let currentBest = localStorage.getItem(bestKey);
+            let isNewBest = false;
+
+            if (!currentBest || seconds < parseInt(currentBest)) {
+                localStorage.setItem(bestKey, seconds);
+                currentBest = seconds;
+                isNewBest = true;
+            }
+
+            document.getElementById('final-time').innerText = seconds;
+            document.getElementById('record-display').innerText = currentBest;
+            document.getElementById('new-best').style.display = isNewBest ? 'block' : 'none';
+            document.getElementById('win-overlay').style.display = 'flex';
+            speak("Good job! You finished!");
         }
 
         function useHint() {
