@@ -38,14 +38,14 @@
         }
         .lvl-btn:hover { transform: translateY(-3px); background: var(--primary); color: white; }
         .lvl-btn .en { font-size: 1.2rem; font-weight: bold; }
-        .lvl-btn .he { font-size: 0.9rem; opacity: 0.8; }
+        .lvl-btn .he { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
 
         #game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
         .stats { display: flex; gap: 10px; }
-        .stat-box { background: white; padding: 8px 15px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .nav-btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .back-btn { background: #dfe6e9; }
-        .hint-btn { background: #ffeaa7; color: #d35400; }
+        .stat-box { background: white; padding: 8px 15px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; font-size: 0.8rem;}
+        .nav-btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; flex-direction: column; align-items: center; line-height: 1.2;}
+        .back-btn { background: #dfe6e9; font-size: 0.8rem;}
+        .hint-btn { background: #ffeaa7; color: #d35400; font-size: 0.8rem;}
 
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; transition: 0.3s; }
         .grid.large { grid-template-columns: repeat(5, 1fr); }
@@ -83,7 +83,7 @@
 <body>
 
     <div id="main-menu" class="screen">
-        <h1>🍎 Food Memory Game</h1>
+        <h1>🍎 Food Memory Game / משחק זיכרון אוכל</h1>
         <p class="subtitle">Select a level / בחר רמה</p>
         <div class="menu-grid">
             <button class="lvl-btn" onclick="startGame(1)"><span class="en">Level 1</span><span class="he">רמה 1</span></button>
@@ -95,12 +95,24 @@
 
     <div id="game-screen" class="screen" style="display:none;">
         <div id="game-header">
-            <button class="nav-btn back-btn" onclick="showMenu()">⬅ Menu</button>
+            <button class="nav-btn back-btn" onclick="showMenu()">
+                <span>⬅ Menu</span>
+                <span>תפריט</span>
+            </button>
             <div class="stats">
-                <div class="stat-box">🕒 <span id="timer">0</span>s</div>
-                <div class="stat-box">⭐ <span id="score">0</span>/<span id="total-pairs">8</span></div>
+                <div class="stat-box">
+                    <span>🕒 Time / זמן</span>
+                    <span id="timer">0</span>
+                </div>
+                <div class="stat-box">
+                    <span>⭐ Score / ניקוד</span>
+                    <span><span id="score">0</span>/<span id="total-pairs">8</span></span>
+                </div>
             </div>
-            <button class="nav-btn hint-btn" onclick="useHint()">💡 Hint (+5s)</button>
+            <button class="nav-btn hint-btn" onclick="useHint()">
+                <span>💡 Hint</span>
+                <span>רמז</span>
+            </button>
         </div>
         <div id="game-board" class="grid"></div>
     </div>
@@ -108,8 +120,9 @@
     <div id="win-overlay">
         <div class="win-box">
             <h2>🎉 AWESOME! 🎉</h2>
-            <p>You finished in <span id="final-time">0</span> seconds!</p>
-            <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+            <h3>כל הכבוד!</h3>
+            <p>Time: <span id="final-time">0</span> seconds / שניות</p>
+            <button class="play-again-btn" onclick="resetGame()">Play Again / שחק שוב</button>
         </div>
     </div>
 
@@ -138,11 +151,9 @@
         let currentLevel = 1, flippedCards = [], matchedPairs = 0, seconds = 0, timerInterval, canFlip = true;
         let selectedVoice = null;
 
-        // LOAD VOICES IMMEDIATELY
         function loadVoices() {
             let voices = window.speechSynthesis.getVoices();
-            // Look for Google US English or Samantha (standard Apple US voice)
-            selectedVoice = voices.find(v => v.name === 'Google US English' || v.name === 'Samantha' || v.lang === 'en-US');
+            selectedVoice = voices.find(v => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('Samantha')));
         }
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
@@ -152,8 +163,12 @@
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
             if (selectedVoice) msg.voice = selectedVoice;
-            msg.rate = 0.85; 
-            msg.pitch = 1.0;
+            
+            // OPTIMIZED FOR ENDING CONSONANTS (T, K)
+            msg.rate = 0.72; 
+            msg.pitch = 1.1; 
+            msg.volume = 1.0; 
+            
             window.speechSynthesis.speak(msg);
         }
 
@@ -226,7 +241,7 @@
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             document.getElementById('final-time').innerText = seconds;
             document.getElementById('win-overlay').style.display = 'flex';
-            speak("Awesome! You finished the level!");
+            speak("Good job! You found all the pairs!");
         }
 
         function useHint() {
