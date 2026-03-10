@@ -16,13 +16,8 @@
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background: var(--bg); 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            margin: 0;
-            padding: 20px;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; padding: 20px; overflow-x: hidden; -webkit-tap-highlight-color: transparent;
         }
 
         .screen { width: 100%; max-width: 650px; text-align: center; }
@@ -69,18 +64,8 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center;
         }
-        .win-box { 
-            background: white; padding: 30px; border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-width: 90%;
-        }
-        .best-score { color: var(--secondary); font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
+        .win-box { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 90%; }
         .play-again-btn { background: var(--secondary); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; margin-top: 20px; font-weight: bold; }
-
-        @media (max-width: 500px) {
-            .grid.large { grid-template-columns: repeat(4, 1fr); }
-            .emoji { font-size: 1.6rem; }
-        }
     </style>
 </head>
 <body>
@@ -112,10 +97,9 @@
     <div id="win-overlay">
         <div class="win-box">
             <h2>🎉 GOOD JOB! 🎉</h2>
-            <h3>כל הכבוד!</h3>
-            <p>Your Time: <span id="final-time">0</span>s / שניות</p>
-            <div id="new-best" style="display:none; color: gold; font-weight: bold;">🏆 NEW BEST SCORE! / שיא חדש! 🏆</div>
-            <div class="best-score">Personal Best / שיא אישי: <span id="record-display">--</span>s</div>
+            <p>Your Time: <span id="final-time">0</span>s</p>
+            <div id="new-best" style="display:none; color: gold; font-weight: bold; margin: 10px 0;">🏆 NEW BEST SCORE! / שיא חדש! 🏆</div>
+            <div style="font-weight:bold; color: var(--secondary);">Personal Best / שיא אישי: <span id="record-display">--</span>s</div>
             <button class="play-again-btn" onclick="resetGame()">Play Again / שחק שוב</button>
         </div>
     </div>
@@ -132,25 +116,22 @@
 
         function loadVoices() {
             let voices = window.speechSynthesis.getVoices();
-            selectedVoice = voices.find(v => v.name.includes('Google') && v.lang === 'en-US') || voices.find(v => v.lang === 'en-US');
+            selectedVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) || voices.find(v => v.lang === 'en-US');
         }
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
         function speak(text) {
             window.speechSynthesis.cancel();
-            let phoneticText = text;
             
-            // SHARP CONSONANT TRICK
-            if(text.toLowerCase() === 'carrot') phoneticText = "Carrot-t.";
-            else if(text.toLowerCase() === 'cake') phoneticText = "Cake-k.";
-            else if(text.toLowerCase() === 'steak') phoneticText = "Steak-k.";
-            else phoneticText = text + ".";
+            // Punctuation Cadence for sharp 'T' and 'K' sounds
+            const naturalText = text + ", .";
 
-            const msg = new SpeechSynthesisUtterance(phoneticText);
+            const msg = new SpeechSynthesisUtterance(naturalText);
             msg.lang = 'en-US';
             if (selectedVoice) msg.voice = selectedVoice;
-            msg.rate = 0.65; // Slower for absolute clarity
+            
+            msg.rate = 0.72; // Slightly slower for clear consonants
             msg.pitch = 1.0;
             window.speechSynthesis.speak(msg);
         }
@@ -177,69 +158,56 @@
             document.getElementById('total-pairs').innerText = data.length;
             document.getElementById('timer').innerText = '0';
             document.getElementById('win-overlay').style.display = 'none';
-            
             const board = document.getElementById('game-board');
             board.innerHTML = '';
             board.className = data.length > 8 ? 'grid large' : 'grid';
-            
             const cardsData = [...data, ...data].sort(() => Math.random() - 0.5);
             cardsData.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.name = item.name;
                 card.innerHTML = `<div class="content"><span class="emoji">${item.emoji}</span><span class="word">${item.name}</span></div>`;
-                card.onclick = () => flipCard(card, item.name);
+                card.onclick = () => {
+                    if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                    card.classList.add('flipped');
+                    flippedCards.push(card);
+                    speak(item.name);
+                    if (flippedCards.length === 2) { 
+                        canFlip = false; 
+                        const [c1, c2] = flippedCards;
+                        if (c1.dataset.name === c2.dataset.name) {
+                            c1.classList.add('matched'); c2.classList.add('matched');
+                            matchedPairs++;
+                            document.getElementById('score').innerText = matchedPairs;
+                            flippedCards = []; canFlip = true;
+                            if (matchedPairs === data.length) handleWin();
+                        } else {
+                            setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; canFlip = true; }, 1000);
+                        }
+                    }
+                };
                 board.appendChild(card);
             });
             timerInterval = setInterval(() => { seconds++; document.getElementById('timer').innerText = seconds; }, 1000);
         }
 
-        function flipCard(card, name) {
-            if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-            card.classList.add('flipped');
-            flippedCards.push(card);
-            speak(name);
-            if (flippedCards.length === 2) { canFlip = false; checkMatch(); }
-        }
-
-        function checkMatch() {
-            const [c1, c2] = flippedCards;
-            if (c1.dataset.name === c2.dataset.name) {
-                c1.classList.add('matched'); c2.classList.add('matched');
-                matchedPairs++;
-                document.getElementById('score').innerText = matchedPairs;
-                flippedCards = []; canFlip = true;
-                if (matchedPairs === levels[currentLevel].length) handleWin();
-            } else {
-                setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; canFlip = true; }, 1000);
-            }
-        }
-
         function handleWin() {
             clearInterval(timerInterval);
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            
-            const bestKey = `best_lvl_${currentLevel}`;
-            let currentBest = localStorage.getItem(bestKey);
-            let isNewBest = false;
-
-            if (!currentBest || seconds < parseInt(currentBest)) {
-                localStorage.setItem(bestKey, seconds);
-                currentBest = seconds;
-                isNewBest = true;
-            }
-
+            const key = `food_best_${currentLevel}`;
+            let best = localStorage.getItem(key);
+            let isNew = !best || seconds < parseInt(best);
+            if(isNew) { localStorage.setItem(key, seconds); best = seconds; }
             document.getElementById('final-time').innerText = seconds;
-            document.getElementById('record-display').innerText = currentBest;
-            document.getElementById('new-best').style.display = isNewBest ? 'block' : 'none';
+            document.getElementById('record-display').innerText = best;
+            document.getElementById('new-best').style.display = isNew ? 'block' : 'none';
             document.getElementById('win-overlay').style.display = 'flex';
-            speak("Good job! You finished!");
+            speak("Good job!");
         }
 
         function useHint() {
             if (!canFlip) return;
-            seconds += 5;
-            document.getElementById('timer').innerText = seconds;
+            seconds += 5; document.getElementById('timer').innerText = seconds;
             const allHidden = document.querySelectorAll('.card:not(.flipped):not(.matched)');
             canFlip = false;
             allHidden.forEach(c => c.classList.add('flipped'));
