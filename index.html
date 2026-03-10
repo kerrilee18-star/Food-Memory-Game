@@ -27,7 +27,7 @@
 
         .screen { width: 100%; max-width: 650px; text-align: center; }
 
-        h1 { color: #2d3436; margin-bottom: 5px; }
+        h1 { color: #2d3436; margin-bottom: 5px; font-size: 1.8rem; }
         .subtitle { margin-bottom: 25px; color: #636e72; font-weight: bold; }
         
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -40,14 +40,18 @@
         .lvl-btn .en { font-size: 1.2rem; font-weight: bold; }
         .lvl-btn .he { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
 
-        #game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
-        .stats { display: flex; gap: 10px; }
-        .stat-box { background: white; padding: 8px 15px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; font-size: 0.8rem;}
-        .nav-btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; flex-direction: column; align-items: center; line-height: 1.2;}
-        .back-btn { background: #dfe6e9; font-size: 0.8rem;}
-        .hint-btn { background: #ffeaa7; color: #d35400; font-size: 0.8rem;}
+        /* HEADER & SCORE KEEPER */
+        #game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; gap: 10px; }
+        .stats { display: flex; gap: 8px; flex-grow: 1; justify-content: center; }
+        .stat-box { background: white; padding: 5px 10px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; min-width: 80px; }
+        .stat-label { font-size: 0.65rem; color: #636e72; margin-bottom: 2px; }
+        .stat-value { font-size: 1rem; color: var(--primary); }
 
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; transition: 0.3s; }
+        .nav-btn { padding: 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; flex-direction: column; align-items: center; min-width: 70px; }
+        .back-btn { background: #dfe6e9; font-size: 0.75rem;}
+        .hint-btn { background: #ffeaa7; color: #d35400; font-size: 0.75rem;}
+
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; transition: 0.3s; width: 100%; }
         .grid.large { grid-template-columns: repeat(5, 1fr); }
 
         .card { 
@@ -58,14 +62,14 @@
         .card .content { display: none; flex-direction: column; align-items: center; width: 100%; padding: 5px; }
         .card.flipped { background: white; transform: rotateY(180deg); border: 3px solid var(--primary); }
         .card.flipped .content { display: flex; transform: rotateY(180deg); }
-        .card.matched { background: #e8f8f5; border-color: var(--secondary); cursor: default; }
+        .card.matched { background: #e8f8f5; border-color: var(--secondary); cursor: default; opacity: 0.8; }
 
         .emoji { font-size: 2.2rem; }
-        .word { font-size: 0.65rem; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: #333; word-break: break-word; }
+        .word { font-size: 0.7rem; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: #333; }
 
         #win-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center;
         }
         .win-box { 
             background: white; padding: 40px; border-radius: 20px; text-align: center;
@@ -76,14 +80,16 @@
 
         @media (max-width: 500px) {
             .grid.large { grid-template-columns: repeat(4, 1fr); }
-            .emoji { font-size: 1.8rem; }
+            .emoji { font-size: 1.6rem; }
+            .word { font-size: 0.6rem; }
         }
     </style>
 </head>
 <body>
 
     <div id="main-menu" class="screen">
-        <h1>🍎 Food Memory Game / משחק זיכרון אוכל</h1>
+        <h1>🍎 Food Memory Game</h1>
+        <h3>משחק זיכרון אוכל</h3>
         <p class="subtitle">Select a level / בחר רמה</p>
         <div class="menu-grid">
             <button class="lvl-btn" onclick="startGame(1)"><span class="en">Level 1</span><span class="he">רמה 1</span></button>
@@ -101,12 +107,12 @@
             </button>
             <div class="stats">
                 <div class="stat-box">
-                    <span>🕒 Time / זמן</span>
-                    <span id="timer">0</span>
+                    <span class="stat-label">🕒 Time / זמן</span>
+                    <span id="timer" class="stat-value">0</span>
                 </div>
                 <div class="stat-box">
-                    <span>⭐ Score / ניקוד</span>
-                    <span><span id="score">0</span>/<span id="total-pairs">8</span></span>
+                    <span class="stat-label">⭐ Score / ניקוד</span>
+                    <span class="stat-value"><span id="score">0</span>/<span id="total-pairs">8</span></span>
                 </div>
             </div>
             <button class="nav-btn hint-btn" onclick="useHint()">
@@ -119,33 +125,19 @@
 
     <div id="win-overlay">
         <div class="win-box">
-            <h2>🎉 AWESOME! 🎉</h2>
+            <h2>🎉 GOOD JOB! 🎉</h2>
             <h3>כל הכבוד!</h3>
-            <p>Time: <span id="final-time">0</span> seconds / שניות</p>
+            <p>Time: <span id="final-time">0</span>s / שניות</p>
             <button class="play-again-btn" onclick="resetGame()">Play Again / שחק שוב</button>
         </div>
     </div>
 
     <script>
         const levels = {
-            1: [
-                {name:'Apple', emoji:'🍎'}, {name:'Banana', emoji:'🍌'}, {name:'Carrot', emoji:'🥕'}, {name:'Corn', emoji:'🌽'},
-                {name:'Hamburger', emoji:'🍔'}, {name:'Salad', emoji:'🥗'}, {name:'Ice Cream', emoji:'🍦'}, {name:'Cake', emoji:'🍰'}
-            ],
-            2: [
-                {name:'Grapes', emoji:'🍇'}, {name:'Orange', emoji:'🍊'}, {name:'Cucumber', emoji:'🥒'}, {name:'Tomato', emoji:'🍅'},
-                {name:'Bread', emoji:'🍞'}, {name:'Steak', emoji:'🥩'}, {name:'Cookie', emoji:'🍪'}, {name:'Candy', emoji:'🍬'}
-            ],
-            3: [
-                {name:'Pear', emoji:'🍐'}, {name:'Cherries', emoji:'🍒'}, {name:'Peas', emoji:'🫛'}, {name:'Lettuce', emoji:'🥬'},
-                {name:'Butter', emoji:'🧈'}, {name:'Hot Dog', emoji:'🌭'}, {name:'Pie', emoji:'🥧'}, {name:'Pineapple', emoji:'🍍'},
-                {name:'Fried Egg', emoji:'🍳'}, {name:'Bagel', emoji:'🥯'}
-            ],
-            4: [
-                {name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🍠'},
-                {name:'Dumpling', emoji:'🥟'}, {name:'Ginger', emoji:'🫚'}, {name:'Peanuts', emoji:'🥜'}, {name:'Red Beans', emoji:'🫘'},
-                {name:'Lime', emoji:'🍋‍🟩'}, {name:'Fortune Cookie', emoji:'🥠'}
-            ]
+            1: [{name:'Apple', emoji:'🍎'}, {name:'Banana', emoji:'🍌'}, {name:'Carrot', emoji:'🥕'}, {name:'Corn', emoji:'🌽'}, {name:'Hamburger', emoji:'🍔'}, {name:'Salad', emoji:'🥗'}, {name:'Ice Cream', emoji:'🍦'}, {name:'Cake', emoji:'🍰'}],
+            2: [{name:'Grapes', emoji:'🍇'}, {name:'Orange', emoji:'🍊'}, {name:'Cucumber', emoji:'🥒'}, {name:'Tomato', emoji:'🍅'}, {name:'Bread', emoji:'🍞'}, {name:'Steak', emoji:'🥩'}, {name:'Cookie', emoji:'🍪'}, {name:'Candy', emoji:'🍬'}],
+            3: [{name:'Pear', emoji:'🍐'}, {name:'Cherries', emoji:'🍒'}, {name:'Peas', emoji:'🫛'}, {name:'Lettuce', emoji:'🥬'}, {name:'Butter', emoji:'🧈'}, {name:'Hot Dog', emoji:'🌭'}, {name:'Pie', emoji:'🥧'}, {name:'Pineapple', emoji:'🍍'}, {name:'Fried Egg', emoji:'🍳'}, {name:'Bagel', emoji:'🥯'}],
+            4: [{name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🍠'}, {name:'Dumpling', emoji:'🥟'}, {name:'Ginger', emoji:'🫚'}, {name:'Peanuts', emoji:'🥜'}, {name:'Red Beans', emoji:'🫘'}, {name:'Lime', emoji:'🍋‍🟩'}, {name:'Fortune Cookie', emoji:'🥠'}]
         };
 
         let currentLevel = 1, flippedCards = [], matchedPairs = 0, seconds = 0, timerInterval, canFlip = true;
@@ -153,20 +145,30 @@
 
         function loadVoices() {
             let voices = window.speechSynthesis.getVoices();
-            selectedVoice = voices.find(v => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('Samantha')));
+            // Priority: Google US English -> Samantha -> Any en-US
+            selectedVoice = voices.find(v => v.name === 'Google US English') || 
+                            voices.find(v => v.name === 'Samantha') || 
+                            voices.find(v => v.lang === 'en-US');
         }
         window.speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
         function speak(text) {
             window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
+            
+            // PHONETIC BOOSTING: 
+            // We add a period and space to force the voice to emphasize the final consonant.
+            let phoneticText = text + "."; 
+            
+            // Special handling for "Butter" to make the 'tt' sound sharper
+            if(text.toLowerCase() === 'butter') phoneticText = "But-ter.";
+            
+            const msg = new SpeechSynthesisUtterance(phoneticText);
             msg.lang = 'en-US';
             if (selectedVoice) msg.voice = selectedVoice;
             
-            // OPTIMIZED FOR ENDING CONSONANTS (T, K)
-            msg.rate = 0.72; 
-            msg.pitch = 1.1; 
+            msg.rate = 0.7;  // Slower for maximum clarity
+            msg.pitch = 1.0; 
             msg.volume = 1.0; 
             
             window.speechSynthesis.speak(msg);
@@ -190,22 +192,19 @@
             clearInterval(timerInterval);
             matchedPairs = 0; seconds = 0; flippedCards = []; canFlip = true;
             const data = levels[currentLevel];
-            const totalPairs = data.length;
             document.getElementById('score').innerText = '0';
-            document.getElementById('total-pairs').innerText = totalPairs;
+            document.getElementById('total-pairs').innerText = data.length;
             document.getElementById('timer').innerText = '0';
             document.getElementById('win-overlay').style.display = 'none';
+            
             const board = document.getElementById('game-board');
             board.innerHTML = '';
-            
-            if(totalPairs > 8) board.classList.add('large');
-            else board.classList.remove('large');
+            board.className = data.length > 8 ? 'grid large' : 'grid';
             
             const cardsData = [...data, ...data].sort(() => Math.random() - 0.5);
-            
             cardsData.forEach(item => {
                 const card = document.createElement('div');
-                card.classList.add('card');
+                card.className = 'card';
                 card.dataset.name = item.name;
                 card.innerHTML = `<div class="content"><span class="emoji">${item.emoji}</span><span class="word">${item.name}</span></div>`;
                 card.onclick = () => flipCard(card, item.name);
@@ -224,24 +223,22 @@
 
         function checkMatch() {
             const [c1, c2] = flippedCards;
-            const target = levels[currentLevel].length;
             if (c1.dataset.name === c2.dataset.name) {
                 c1.classList.add('matched'); c2.classList.add('matched');
                 matchedPairs++;
                 document.getElementById('score').innerText = matchedPairs;
                 flippedCards = []; canFlip = true;
-                if (matchedPairs === target) winGame();
+                if (matchedPairs === levels[currentLevel].length) {
+                    setTimeout(() => {
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        document.getElementById('final-time').innerText = seconds;
+                        document.getElementById('win-overlay').style.display = 'flex';
+                        speak("Great job!");
+                    }, 500);
+                }
             } else {
                 setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; canFlip = true; }, 1000);
             }
-        }
-
-        function winGame() {
-            clearInterval(timerInterval);
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            document.getElementById('final-time').innerText = seconds;
-            document.getElementById('win-overlay').style.display = 'flex';
-            speak("Good job! You found all the pairs!");
         }
 
         function useHint() {
@@ -254,7 +251,6 @@
             setTimeout(() => {
                 allHidden.forEach(c => { if(!c.classList.contains('matched')) c.classList.remove('flipped'); });
                 canFlip = true;
-                flippedCards = [];
             }, 1500);
         }
     </script>
