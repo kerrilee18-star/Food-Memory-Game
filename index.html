@@ -130,23 +130,25 @@
             4: [
                 {name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🍠'},
                 {name:'Dumpling', emoji:'🥟'}, {name:'Ginger', emoji:'🫚'}, {name:'Peanuts', emoji:'🥜'}, {name:'Red Beans', emoji:'🫘'},
-                {name:'Croissant', emoji:'🥐'}, {name:'Fortune Cookie', emoji:'🥠'}
+                {name:'Lime', emoji:'🍋‍🟩'}, {name:'Fortune Cookie', emoji:'🥠'}
             ]
         };
 
         let currentLevel = 1, flippedCards = [], matchedPairs = 0, seconds = 0, timerInterval, canFlip = true;
 
-        // American Accent Logic
         function speak(text) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             const voices = window.speechSynthesis.getVoices();
-            // Tries to find US English voice
-            const usVoice = voices.find(voice => voice.lang === 'en-US');
+            // American English filter
+            const usVoice = voices.find(v => v.lang.includes('en-US') || v.name.includes('US English') || v.name.includes('American'));
             if (usVoice) msg.voice = usVoice;
-            msg.rate = 0.8;
+            msg.rate = 0.85; 
             window.speechSynthesis.speak(msg);
         }
+
+        // Pre-load voices for speech
+        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
         function showMenu() {
             clearInterval(timerInterval);
@@ -214,7 +216,7 @@
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             document.getElementById('final-time').innerText = seconds;
             document.getElementById('win-overlay').style.display = 'flex';
-            speak("Good Job! You finished the level!");
+            speak("Awesome! You finished the level!");
         }
 
         function useHint() {
