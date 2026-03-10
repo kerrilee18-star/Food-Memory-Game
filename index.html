@@ -26,7 +26,6 @@
 
         .screen { width: 100%; max-width: 650px; text-align: center; }
 
-        /* Menu Styling */
         h1 { color: #2d3436; margin-bottom: 5px; }
         .subtitle { margin-bottom: 25px; color: #636e72; font-weight: bold; }
         
@@ -40,7 +39,6 @@
         .lvl-btn .en { font-size: 1.2rem; font-weight: bold; }
         .lvl-btn .he { font-size: 0.9rem; opacity: 0.8; }
 
-        /* Game Header */
         #game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
         .stats { display: flex; gap: 10px; }
         .stat-box { background: white; padding: 8px 15px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -48,7 +46,6 @@
         .back-btn { background: #dfe6e9; }
         .hint-btn { background: #ffeaa7; color: #d35400; }
 
-        /* Board Grid */
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; transition: 0.3s; }
         .grid.large { grid-template-columns: repeat(5, 1fr); }
 
@@ -65,7 +62,6 @@
         .emoji { font-size: 2.2rem; }
         .word { font-size: 0.65rem; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: #333; word-break: break-word; }
 
-        /* Win Message Pop-up */
         #win-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
@@ -132,7 +128,7 @@
                 {name:'Fried Egg', emoji:'🍳'}, {name:'Bagel', emoji:'🥯'}
             ],
             4: [
-                {name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🥔'},
+                {name:'Blueberries', emoji:'🫐'}, {name:'Coconut', emoji:'🥥'}, {name:'Garlic', emoji:'🧄'}, {name:'Sweet Potato', emoji:'🍠'},
                 {name:'Dumpling', emoji:'🥟'}, {name:'Ginger', emoji:'🫚'}, {name:'Peanuts', emoji:'🥜'}, {name:'Red Beans', emoji:'🫘'},
                 {name:'Croissant', emoji:'🥐'}, {name:'Fortune Cookie', emoji:'🥠'}
             ]
@@ -140,9 +136,14 @@
 
         let currentLevel = 1, flippedCards = [], matchedPairs = 0, seconds = 0, timerInterval, canFlip = true;
 
+        // American Accent Logic
         function speak(text) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            // Tries to find US English voice
+            const usVoice = voices.find(voice => voice.lang === 'en-US');
+            if (usVoice) msg.voice = usVoice;
             msg.rate = 0.8;
             window.speechSynthesis.speak(msg);
         }
@@ -164,25 +165,17 @@
         function resetGame() {
             clearInterval(timerInterval);
             matchedPairs = 0; seconds = 0; flippedCards = []; canFlip = true;
-            
             const data = levels[currentLevel];
             const totalPairs = data.length;
-            
             document.getElementById('score').innerText = '0';
             document.getElementById('total-pairs').innerText = totalPairs;
             document.getElementById('timer').innerText = '0';
             document.getElementById('win-overlay').style.display = 'none';
-            
             const board = document.getElementById('game-board');
             board.innerHTML = '';
-            
-            // Adjust grid for 20-card levels
             if(totalPairs > 8) board.classList.add('large');
             else board.classList.remove('large');
-            
-            // SHUFFLE LOGIC
             const cardsData = [...data, ...data].sort(() => Math.random() - 0.5);
-            
             cardsData.forEach(item => {
                 const card = document.createElement('div');
                 card.classList.add('card');
@@ -191,7 +184,6 @@
                 card.onclick = () => flipCard(card, item.name);
                 board.appendChild(card);
             });
-
             timerInterval = setInterval(() => { seconds++; document.getElementById('timer').innerText = seconds; }, 1000);
         }
 
@@ -206,7 +198,6 @@
         function checkMatch() {
             const [c1, c2] = flippedCards;
             const target = levels[currentLevel].length;
-            
             if (c1.dataset.name === c2.dataset.name) {
                 c1.classList.add('matched'); c2.classList.add('matched');
                 matchedPairs++;
