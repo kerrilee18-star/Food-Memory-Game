@@ -19,199 +19,90 @@
         body { 
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
             background: var(--bg); 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            margin: 0;
-            padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) 10px;
-            height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; padding: 20px; height: 100vh; overflow: hidden;
         }
 
-        .screen { 
-            width: 100%; 
-            max-width: 600px; 
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center; 
-        }
-
-        h1 { color: var(--text-dark); margin: 10px 0 5px 0; font-size: clamp(1.5rem, 5vw, 2.2rem); }
-        .subtitle { margin-bottom: 20px; color: #636e72; font-weight: bold; font-size: 0.9rem; }
+        .screen { width: 100%; max-width: 650px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: var(--text-dark); margin-bottom: 5px; font-size: 1.8rem; }
+        .subtitle { margin-bottom: 25px; color: #636e72; font-weight: bold; }
         
-        .menu-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            width: 100%;
-            padding: 10px;
-        }
-
+        /* Restored Hebrew Level Buttons */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
         .lvl-btn {
-            padding: clamp(15px, 4vw, 25px); 
-            border: none; 
-            border-radius: 18px; 
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            cursor: pointer; 
-            transition: transform 0.2s;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
+            padding: 20px; border: none; border-radius: 15px; background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center;
         }
-        .lvl-btn:active { transform: scale(0.95); background: var(--primary); color: white; }
-        .lvl-btn .en { font-size: 1.1rem; font-weight: 800; }
+        .lvl-btn:active { transform: translateY(2px); background: var(--primary); color: white; }
+        .lvl-btn .en { font-size: 1.2rem; font-weight: bold; }
+        .lvl-btn .he { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
 
-        #game-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            width: 100%; 
-            padding: 10px 0;
-            gap: 10px; 
-        }
-
+        #game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; gap: 10px; }
         .stats { display: flex; gap: 8px; flex-grow: 1; justify-content: center; }
-        .stat-box { 
-            background: white; 
-            padding: 5px 10px; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-            min-width: 75px; 
-        }
+        .stat-box { background: white; padding: 5px 10px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-width: 80px; }
+        .stat-label { font-size: 0.65rem; color: #636e72; display: block; }
+        .stat-value { font-size: 1rem; color: var(--primary); }
 
-        .stat-label { font-size: 0.6rem; color: #636e72; display: block; text-transform: uppercase; }
-        .stat-value { font-size: 1rem; font-weight: 800; color: var(--primary); }
-
-        .nav-btn { 
-            padding: 8px 12px; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 0.7rem;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
-        .back-btn { background: #dfe6e9; color: var(--text-dark); }
+        .nav-btn { padding: 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; flex-direction: column; align-items: center; min-width: 70px; font-size: 0.75rem;}
+        .back-btn { background: #dfe6e9; }
         .hint-btn { background: #ffeaa7; color: #d35400; }
 
-        #game-board { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 8px; 
-            width: 100%; 
-            max-height: 70vh;
-            margin-bottom: 20px;
-        }
-
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; perspective: 1000px; }
         .card { 
-            aspect-ratio: 1/1.2; 
-            background: var(--card-back); 
-            border-radius: 12px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            transition: transform 0.4s; 
-            position: relative; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transform-style: preserve-3d;
+            aspect-ratio: 1/1.2; background: var(--card-back); border-radius: 12px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            transition: 0.4s; position: relative; transform-style: preserve-3d;
         }
-
-        .card .content { 
-            display: none; 
-            flex-direction: column; 
-            align-items: center; 
-            width: 100%; 
-            backface-visibility: hidden;
-        }
-
-        .card.flipped { background: white; transform: rotateY(180deg); border: 2px solid var(--primary); }
+        .card .content { display: none; flex-direction: column; align-items: center; width: 100%; backface-visibility: hidden; }
+        .card.flipped { background: white; transform: rotateY(180deg); border: 3px solid var(--primary); }
         .card.flipped .content { display: flex; transform: rotateY(180deg); }
-        .card.matched { background: #e8f8f5; border-color: var(--secondary); opacity: 0.9; cursor: default; }
+        .card.matched { background: #e8f8f5; border-color: var(--secondary); opacity: 0.8; cursor: default; }
 
-        .emoji { font-size: clamp(1.5rem, 8vw, 2.5rem); }
-        .word { font-size: 0.65rem; font-weight: 800; margin-top: 5px; text-transform: uppercase; color: #2d3436; }
+        .emoji { font-size: 2.2rem; }
+        .word { font-size: 0.7rem; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: #333; }
 
         #win-overlay { 
-            display: none; 
-            position: fixed; 
-            inset: 0;
-            background: rgba(45, 52, 54, 0.95); 
-            z-index: 1000; 
-            align-items: center; 
-            justify-content: center;
-            padding: 20px;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
+            z-index: 100; align-items: center; justify-content: center;
         }
-
-        .win-box { 
-            background: white; 
-            padding: 40px 20px; 
-            border-radius: 24px; 
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .win-box h2 { color: var(--secondary); font-size: 2.2rem; margin: 0; }
-        .play-again-btn { 
-            background: var(--secondary); 
-            color: white; 
-            border: none; 
-            padding: 16px 32px; 
-            border-radius: 12px; 
-            font-size: 1.2rem; 
-            cursor: pointer; 
-            font-weight: 800; 
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        @media (orientation: landscape) and (max-height: 500px) {
-            h1 { font-size: 1.2rem; margin: 0; }
-            #game-board { grid-template-columns: repeat(6, 1fr); max-height: 60vh; }
-        }
+        .win-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
+        .play-again-btn { background: var(--secondary); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; margin-top: 20px; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
 
     <div id="main-menu" class="screen">
         <h1>🍎 Food Memory Game</h1>
-        <p class="subtitle">Select a Level / בחר רמה</p>
+        <p class="subtitle">Select a level / בחר רמה</p>
         <div class="menu-grid">
-            <button class="lvl-btn" onclick="startGame(1)"><span class="en">Level 1</span></button>
-            <button class="lvl-btn" onclick="startGame(2)"><span class="en">Level 2</span></button>
-            <button class="lvl-btn" onclick="startGame(3)"><span class="en">Level 3</span></button>
-            <button class="lvl-btn" onclick="startGame(4)"><span class="en">Level 4</span></button>
+            <button class="lvl-btn" onclick="startGame(1)"><span class="en">Level 1</span><span class="he">רמה 1</span></button>
+            <button class="lvl-btn" onclick="startGame(2)"><span class="en">Level 2</span><span class="he">רמה 2</span></button>
+            <button class="lvl-btn" onclick="startGame(3)"><span class="en">Level 3</span><span class="he">רמה 3</span></button>
+            <button class="lvl-btn" onclick="startGame(4)"><span class="en">Level 4</span><span class="he">רמה 4</span></button>
         </div>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">
         <div id="game-header">
-            <button class="nav-btn back-btn" onclick="showMenu()"><span>⬅ MENU</span></button>
+            <button class="nav-btn back-btn" onclick="showMenu()"><span>⬅ Menu</span><span>תפריט</span></button>
             <div class="stats">
-                <div class="stat-box"><span class="stat-label">TIME</span><span id="timer" class="stat-value">0</span></div>
-                <div class="stat-box"><span class="stat-label">SCORE</span><span class="stat-value"><span id="score">0</span>/<span id="total-pairs">8</span></span></div>
+                <div class="stat-box"><span class="stat-label">Time / זמן</span><span id="timer" class="stat-value">0</span></div>
+                <div class="stat-box"><span class="stat-label">Score / ניקוד</span><span class="stat-value"><span id="score">0</span>/<span id="total-pairs">8</span></span></div>
             </div>
-            <button class="nav-btn hint-btn" onclick="useHint()"><span>💡 HINT</span></button>
+            <button class="nav-btn hint-btn" onclick="useHint()"><span>💡 Hint</span><span>רמז</span></button>
         </div>
-        <div id="game-board"></div>
+        <div id="game-board" class="grid"></div>
     </div>
 
     <div id="win-overlay">
         <div class="win-box">
-            <h2>EXCELLENT!</h2>
-            <h3>CONGRATULATIONS!</h3>
-            <p style="font-size: 1.1rem;">You finished in <strong><span id="final-time">0</span> seconds</strong>!</p>
-            <div id="new-best" style="display:none; color: #f1c40f; font-weight: 900; margin: 15px 0;">🏆 NEW RECORD! 🏆</div>
-            <p style="color: #636e72;">Personal Best: <span id="record-display">--</span>s</p>
-            <button class="play-again-btn" onclick="resetGame()">PLAY AGAIN</button>
+            <h2 style="color: var(--secondary); margin:0;">🎉 EXCELLENT! 🎉</h2>
+            <h3 style="margin:5px 0 20px 0;">כל הכבוד!</h3>
+            <p>Time: <span id="final-time">0</span>s</p>
+            <div id="new-best" style="display:none; color: gold; font-weight: bold; margin: 10px 0;">🏆 NEW RECORD! 🏆</div>
+            <p>Best: <span id="record-display">--</span>s</p>
+            <button class="play-again-btn" onclick="resetGame()">Play Again / שחק שוב</button>
         </div>
     </div>
 
@@ -227,14 +118,15 @@
 
         function speak(text) {
             window.speechSynthesis.cancel();
-            let phoneticText = text;
-            if(text.toLowerCase() === 'carrot') phoneticText = "Carrot-t";
-            else if(text.toLowerCase() === 'cake') phoneticText = "Cake-k";
-            else if(text.toLowerCase() === 'steak') phoneticText = "Steak-k";
+            let p = text;
+            // RESTORED PHONETIC PERFECTION
+            if(text.toLowerCase() === 'carrot') p = "Carrot t";
+            else if(text.toLowerCase() === 'cake') p = "Cake k";
+            else if(text.toLowerCase() === 'steak') p = "Steak k";
             
-            const msg = new SpeechSynthesisUtterance(phoneticText);
+            const msg = new SpeechSynthesisUtterance(p);
             msg.lang = 'en-US';
-            msg.rate = 0.7; 
+            msg.rate = 0.65; // Slow and clear
             window.speechSynthesis.speak(msg);
         }
 
@@ -293,7 +185,7 @@
                 flippedCards = []; canFlip = true;
                 if (matchedPairs === levels[currentLevel].length) {
                     clearInterval(timerInterval);
-                    setTimeout(handleWin, 2500); 
+                    setTimeout(handleWin, 2500); // Glory time
                 }
             } else {
                 setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; canFlip = true; }, 1000);
