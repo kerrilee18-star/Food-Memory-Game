@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matching Countries - Bilingual Edition</title>
+    <title>Food Memory Match</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Assistant:wght@600;800&display=swap');
@@ -11,267 +11,206 @@
         :root {
             --navy: #2c3e50;
             --gold: #b8860b;
-            --paper: #0d1b2a;
-            --success: #27ae60;
+            --apple: #e74c3c;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        html, body { 
-            width: 100%; height: 100%; overflow: hidden; 
-            margin: 0; padding: 0; touch-action: none;
-        }
-
         body {
             font-family: 'Assistant', sans-serif;
-            background-color: #e5e0d8;
-            /* High-reliability Map Background */
-            background-image: 
-                linear-gradient(rgba(240, 235, 225, 0.88), rgba(240, 235, 225, 0.88)),
-                url('https://www.transparenttextures.com/patterns/world-map.png');
-            background-size: cover;
+            background-color: #fdf6e3;
+            background-image: linear-gradient(rgba(253, 246, 227, 0.9), rgba(253, 246, 227, 0.9)), 
+                              url('https://www.transparenttextures.com/patterns/pantry.png');
             display: flex; flex-direction: column; align-items: center;
+            margin: 0; height: 100vh; overflow: hidden;
         }
 
-        /* Screens */
         #unlock-screen, #win-modal {
-            position: fixed; inset: 0; background: var(--navy); z-index: 9999;
+            position: fixed; inset: 0; background: var(--navy); z-index: 999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center;
         }
 
-        .header-container { width: 100%; text-align: center; padding: 10px; }
-        h1 { color: var(--navy); margin: 5px; font-size: 1.4rem; border-bottom: 3px solid var(--gold); display: inline-block; }
-
-        /* Menu */
-        .lvl-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-            width: 90%; max-width: 500px; margin: 20px auto;
+        .stats-bar {
+            display: flex; gap: 20px; padding: 10px; font-weight: bold; color: var(--navy);
+            font-size: 1.2rem;
         }
 
-        .lvl-btn {
-            background: var(--navy); color: white; border: none;
-            padding: 20px 10px; border-radius: 12px; font-weight: bold;
-            cursor: pointer; box-shadow: 0 4px 0 #151f29;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .lvl-btn span { font-size: 0.85rem; opacity: 0.8; margin-top: 5px; }
-
-        /* Gameplay Nav */
-        .nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; width: 100%; }
-        .back-btn {
-            background: #e67e22; color: white; border: none; padding: 8px 18px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #a05817;
+        /* The Grid */
+        #game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 95%;
+            max-width: 600px;
+            perspective: 1000px;
         }
 
-        #game-stats {
-            display: none; width: 90%; max-width: 600px; justify-content: space-around;
-            background: var(--navy); padding: 10px; border-radius: 30px;
-            color: white; font-weight: bold; margin-bottom: 10px;
+        /* Card Styling */
+        .memory-card {
+            aspect-ratio: 1/1;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
         }
 
-        /* Board - Wider for bilingual text */
-        #game-board {
-            display: none; grid-template-columns: 1fr 2.4fr; gap: 12px;
-            width: 95%; max-width: 950px; height: 60vh;
+        .memory-card.flipped { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border: 3px solid white;
         }
 
-        .col { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-        
-        /* Fixed Flag Size to stop stretching */
-        .flag-card {
-            width: 80px; height: 50px; background: white; border-radius: 6px; 
-            border: 2px solid #444; display: flex; align-items: center; justify-content: center;
-            font-size: 2.2rem; cursor: grab; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 10; touch-action: none; position: relative;
+        .card-back {
+            background: var(--navy);
+            color: white;
+            font-size: 2rem;
         }
 
-        .flag-unit { display: flex; align-items: center; gap: 10px; height: 11%; }
-
-        .big-audio-btn {
-            width: 46px; height: 46px; background: var(--gold); border-radius: 50%;
-            border: none; color: white; font-size: 1.3rem; cursor: pointer;
-            box-shadow: 0 3px 0 #8a6509;
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
         }
 
-        /* Name Slots */
-        .name-slot {
-            height: 11%; width: 100%; background: var(--paper); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 800; font-family: 'Assistant', sans-serif;
-            font-size: 1.2rem; text-transform: uppercase; text-align: center;
-            padding: 0 20px; transition: all 0.3s ease;
-        }
-
-        /* The Bilingual Reveal Style */
-        .name-slot.correct { 
-            background: var(--success) !important; 
-            justify-content: space-between;
-            direction: rtl; /* Puts Hebrew first on the right, English in middle, Flag on left */
-            border: 2px solid #fff;
+        .food-emoji { font-size: 3rem; }
+        .food-name { 
+            font-size: 0.9rem; 
+            font-weight: 800; 
+            margin-top: 5px; 
+            color: var(--navy); 
+            text-transform: uppercase;
         }
 
         .btn-main {
             background: var(--gold); color: white; border: none;
-            padding: 15px 45px; border-radius: 12px; font-size: 1.6rem; font-weight: bold;
-            box-shadow: 0 5px 0 #8a6509; cursor: pointer;
+            padding: 15px 40px; border-radius: 12px; font-size: 1.5rem; 
+            font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #8a6509;
         }
+
+        h2 { margin: 10px 0; }
     </style>
 </head>
 <body>
 
     <div id="unlock-screen">
-        <h1 style="color:white; border:none; font-size: 2.8rem;">Matching Countries</h1>
-        <h2 style="font-family: 'Assistant';">התאמת מדינות</h2>
-        <button class="btn-main" onclick="startApp()">START / התחל</button>
+        <h1>Food Memory Game</h1>
+        <h2>משחק הזיכרון: אוכל</h2>
+        <button class="btn-main" onclick="startGame()">START / התחל</button>
     </div>
 
-    <div class="header-container" id="game-header" style="display:none;">
-        <div id="menu-view">
-            <h1>Matching Countries / התאמת מדינות</h1>
-            <div class="lvl-grid">
-                <button class="lvl-btn" onclick="startLevel(1)">Level One <span>שלב ראשון</span></button>
-                <button class="lvl-btn" onclick="startLevel(2)">Level Two <span>שלב שני</span></button>
-                <button class="lvl-btn" onclick="startLevel(3)">Level Three <span>שלב שלישי</span></button>
-                <button class="lvl-btn" onclick="startLevel(4)">Level Four <span>שלב רביעי</span></button>
-            </div>
-        </div>
-
-        <div id="game-nav" style="display:none;">
-            <div class="nav-bar">
-                <button class="back-btn" onclick="location.reload()">חזור / BACK</button>
-                <h1 style="font-size: 1.2rem;">Matching Countries</h1>
-            </div>
-        </div>
+    <div class="stats-bar">
+        <div id="matches">Matches: 0/8</div>
+        <div id="timer">Time: 00:00</div>
     </div>
 
-    <div id="game-stats">
-        <div id="timer-display">TIME: 00:00</div>
-        <div id="score-display">MATCHES: 0/8</div>
-    </div>
-
-    <div id="game-board">
-        <div class="col" id="flag-col"></div>
-        <div class="col" id="name-col"></div>
-    </div>
+    <div id="game-grid"></div>
 
     <div id="win-modal" style="display:none;">
-        <h1 style="font-size: 3.5rem; color: var(--gold);">EXCELLENT!</h1>
-        <h2 style="font-size: 2.2rem;">כל הכבוד</h2>
+        <h1 style="font-size: 3rem; color: var(--gold);">EXCELLENT!</h1>
+        <h2>כל הכבוד</h2>
         <button class="btn-main" onclick="location.reload()">PLAY AGAIN / שחק שוב</button>
     </div>
 
     <script>
-        const database = {
-            1: [{e:"🇦🇷", n:"Argentina", h:"ארגנטינה"}, {e:"🇦🇺", n:"Australia", h:"אוסטרליה"}, {e:"🇧🇷", n:"Brazil", h:"ברזיל"}, {e:"🇨🇦", n:"Canada", h:"קנדה"}, {e:"🇨🇴", n:"Colombia", h:"קולומביה"}, {e:"🇲🇽", n:"Mexico", h:"מקסיקו"}, {e:"🇵🇦", n:"Panama", h:"פנמה"}, {e:"🇺🇸", n:"America", h:"ארה״ב"}],
-            2: [{e:"🇮🇹", n:"Italy", h:"איטליה"}, {e:"🇧🇪", n:"Belgium", h:"בלגיה"}, {e:"🇯🇵", n:"Japan", h:"יפן"}, {e:"🇷🇺", n:"Russia", h:"רוסיה"}, {e:"🇺🇦", n:"Ukraine", h:"אוקראינה"}, {e:"🇪🇹", n:"Ethiopia", h:"אתיופיה"}, {e:"🇬🇧", n:"England", h:"אנגליה"}, {e:"🇩🇪", n:"Germany", h:"גרמניה"}],
-            3: [{e:"🇿🇦", n:"South Africa", h:"דרום אפריקה"}, {e:"🇭🇺", n:"Hungary", h:"הונגריה"}, {e:"🇵🇱", n:"Poland", h:"פולין"}, {e:"🇳🇴", n:"Norway", h:"נורווגיה"}, {e:"🇹🇭", n:"Thailand", h:"תאילנד"}, {e:"🇸🇪", n:"Sweden", h:"שבדיה"}, {e:"🇨🇳", n:"China", h:"סין"}, {e:"🇮🇪", n:"Ireland", h:"אירלנד"}],
-            4: [{e:"🇪🇬", n:"Egypt", h:"מצרים"}, {e:"🇬🇷", n:"Greece", h:"יוון"}, {e:"🇨🇾", n:"Cyprus", h:"קפריסין"}, {e:"🇫🇷", n:"France", h:"צרפת"}, {e:"🇮🇳", n:"India", h:"הודו"}, {e:"🇨🇭", n:"Switzerland", h:"שוויץ"}, {e:"🇳🇱", n:"Netherlands", h:"הולנד"}, {e:"🇱🇹", n:"Lithuania", h:"ליטא"}]
-        };
+        const foodItems = [
+            {e:"🍎", n:"Apple", h:"תפוח"}, {e:"🍕", n:"Pizza", h:"פיצה"},
+            {e:"🍔", n:"Burger", h:"המבורגר"}, {e:"🍦", n:"Ice Cream", h:"גלידה"},
+            {e:"🍌", n:"Banana", h:"בננה"}, {e:"🥪", n:"Sandwich", h:"כריך"},
+            {e:"🥕", n:"Carrot", h:"גזר"}, {e:"🍳", n:"Egg", h:"ביצה"}
+        ];
 
-        let solved = 0, clock = 0, timerRef = null;
+        let cards = [...foodItems, ...foodItems];
+        let flippedCards = [];
+        let matchedCount = 0;
+        let lockBoard = false;
+        let seconds = 0;
+        let timerRef;
 
-        function startApp() {
-            window.speechSynthesis.cancel();
-            const utter = new SpeechSynthesisUtterance("");
-            window.speechSynthesis.speak(utter);
+        function startGame() {
             document.getElementById('unlock-screen').style.display = 'none';
-            document.getElementById('game-header').style.display = 'block';
+            shuffle(cards);
+            createBoard();
+            startTimer();
         }
 
-        function playSound(text) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            msg.rate = 0.85;
-            window.speechSynthesis.speak(msg);
+        function shuffle(array) {
+            array.sort(() => Math.random() - 0.5);
         }
 
-        function startLevel(lvl) {
-            document.getElementById('menu-view').style.display = 'none';
-            document.getElementById('game-nav').style.display = 'block';
-            document.getElementById('game-stats').style.display = 'flex';
-            document.getElementById('game-board').style.display = 'grid';
-
-            const flagCol = document.getElementById('flag-col');
-            const nameCol = document.getElementById('name-col');
-            flagCol.innerHTML = ''; nameCol.innerHTML = '';
-            solved = 0; clock = 0;
-
+        function startTimer() {
             timerRef = setInterval(() => {
-                clock++;
-                const m = Math.floor(clock / 60).toString().padStart(2, '0');
-                const s = (clock % 60).toString().padStart(2, '0');
-                document.getElementById('timer-display').innerText = `TIME: ${m}:${s}`;
+                seconds++;
+                let m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                let s = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `Time: ${m}:${s}`;
             }, 1000);
+        }
 
-            [...database[lvl]].sort(() => Math.random() - 0.5).forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flag-unit';
-                div.innerHTML = `<div class="flag-card" onpointerdown="pickup(event, this)" data-n="${item.n}">${item.e}</div>
-                                 <button class="big-audio-btn" onpointerdown="playSound('${item.n}')">🔊</button>`;
-                flagCol.appendChild(div);
-            });
-
-            [...database[lvl]].sort(() => Math.random() - 0.5).forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'name-slot';
-                div.dataset.n = item.n;
-                div.dataset.h = item.h;
-                div.innerText = item.n;
-                nameCol.appendChild(div);
+        function createBoard() {
+            const grid = document.getElementById('game-grid');
+            cards.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.name = item.n;
+                card.innerHTML = `
+                    <div class="card-back">?</div>
+                    <div class="card-front">
+                        <div class="food-emoji">${item.e}</div>
+                        <div class="food-name">${item.n}</div>
+                        <div class="food-name" style="font-weight:400; font-size:0.7rem;">${item.h}</div>
+                    </div>
+                `;
+                card.addEventListener('click', flipCard);
+                grid.appendChild(card);
             });
         }
 
-        let dragEl = null, startX, startY;
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === flippedCards[0]) return;
 
-        function pickup(e, el) {
-            dragEl = el;
-            startX = e.clientX; startY = e.clientY;
-            dragEl.style.zIndex = "1000";
+            this.classList.add('flipped');
+            flippedCards.push(this);
 
-            document.onpointermove = (ev) => {
-                if(!dragEl) return;
-                const dx = ev.clientX - startX;
-                const dy = ev.clientY - startY;
-                dragEl.style.transform = `translate(${dx}px, ${dy}px)`;
-            };
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
 
-            document.onpointerup = (ev) => {
-                if(!dragEl) return;
-                const slots = document.getElementsByClassName('name-slot');
-                let found = false;
-                
-                for (let s of slots) {
-                    const sRect = s.getBoundingClientRect();
-                    if (ev.clientX > sRect.left && ev.clientX < sRect.right && ev.clientY > sRect.top && ev.clientY < sRect.bottom) {
-                        if (s.dataset.n === dragEl.dataset.n) {
-                            s.classList.add('correct');
-                            // FINAL POLISH: Hebrew + English + Flag Reveal
-                            s.innerHTML = `<span>${s.dataset.h}</span> <span style="font-family:'Montserrat'; opacity:0.9">${s.dataset.n}</span> <span style="font-size:2rem;">${dragEl.innerText}</span>`;
-                            dragEl.remove();
-                            solved++;
-                            document.getElementById('score-display').innerText = `MATCHES: ${solved}/8`;
-                            
-                            if (solved === 8) { 
-                                clearInterval(timerRef);
-                                // 3 Second "Look at my work" delay
-                                setTimeout(() => {
-                                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); 
-                                    document.getElementById('win-modal').style.display = 'flex';
-                                }, 3000);
-                            }
-                            found = true; break;
-                        }
-                    }
+        function checkMatch() {
+            lockBoard = true;
+            let isMatch = flippedCards[0].dataset.name === flippedCards[1].dataset.name;
+
+            if (isMatch) {
+                matchedCount++;
+                document.getElementById('matches').innerText = `Matches: ${matchedCount}/8`;
+                resetTurn();
+                if (matchedCount === 8) {
+                    clearInterval(timerRef);
+                    // 3 Second delay so they see the final match
+                    setTimeout(() => {
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        document.getElementById('win-modal').style.display = 'flex';
+                    }, 3000);
                 }
-                
-                if (!found) {
-                    dragEl.style.transform = "none";
-                    dragEl.style.zIndex = "10";
-                }
-                dragEl = null; document.onpointermove = null; document.onpointerup = null;
-            };
+            } else {
+                setTimeout(() => {
+                    flippedCards[0].classList.remove('flipped');
+                    flippedCards[1].classList.remove('flipped');
+                    resetTurn();
+                }, 1000);
+            }
+        }
+
+        function resetTurn() {
+            flippedCards = [];
+            lockBoard = false;
         }
     </script>
 </body>
