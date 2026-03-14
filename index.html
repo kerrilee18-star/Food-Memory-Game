@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Food Memory Match</title>
+    <title>Food Memory Game</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Assistant:wght@600;800&display=swap');
-
-        :root {
-            --navy: #2c3e50;
-            --gold: #b8860b;
-            --apple: #e74c3c;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap');
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
             font-family: 'Assistant', sans-serif;
-            background-color: #fdf6e3;
-            background-image: linear-gradient(rgba(253, 246, 227, 0.9), rgba(253, 246, 227, 0.9)), 
-                              url('https://www.transparenttextures.com/patterns/pantry.png');
+            background-color: #f7f7f7;
             display: flex; flex-direction: column; align-items: center;
             margin: 0; height: 100vh; overflow: hidden;
         }
 
-        #unlock-screen, #win-modal {
-            position: fixed; inset: 0; background: var(--navy); z-index: 999;
+        /* Essential for iPad Audio unlock */
+        #unlock-screen {
+            position: fixed; inset: 0; background: #2c3e50; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center;
         }
 
-        .stats-bar {
-            display: flex; gap: 20px; padding: 10px; font-weight: bold; color: var(--navy);
-            font-size: 1.2rem;
+        .stats {
+            display: flex; gap: 30px; padding: 20px; font-weight: 800;
+            font-size: 1.4rem; color: #2c3e50;
         }
 
-        /* The Grid */
         #game-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -46,7 +38,6 @@
             perspective: 1000px;
         }
 
-        /* Card Styling */
         .memory-card {
             aspect-ratio: 1/1;
             position: relative;
@@ -63,154 +54,148 @@
             border-radius: 12px;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             border: 3px solid white;
         }
 
+        /* The "Hidden" side */
         .card-back {
-            background: var(--navy);
+            background: #2c3e50;
             color: white;
-            font-size: 2rem;
+            font-size: 2.5rem;
         }
 
+        /* The "Food" side */
         .card-front {
             background: white;
             transform: rotateY(180deg);
         }
 
-        .food-emoji { font-size: 3rem; }
-        .food-name { 
-            font-size: 0.9rem; 
-            font-weight: 800; 
-            margin-top: 5px; 
-            color: var(--navy); 
-            text-transform: uppercase;
+        .emoji { font-size: 3rem; }
+        .name-en { font-weight: 800; font-size: 1rem; color: #2c3e50; margin-top: 5px; }
+        .name-he { font-weight: 400; font-size: 0.9rem; color: #e67e22; }
+
+        .btn-start {
+            background: #e67e22; color: white; border: none;
+            padding: 20px 50px; border-radius: 15px; font-size: 1.8rem;
+            font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #a05817;
         }
 
-        .btn-main {
-            background: var(--gold); color: white; border: none;
-            padding: 15px 40px; border-radius: 12px; font-size: 1.5rem; 
-            font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #8a6509;
+        #win-modal {
+            position: fixed; inset: 0; background: rgba(44, 62, 80, 0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white; z-index: 1000;
         }
-
-        h2 { margin: 10px 0; }
     </style>
 </head>
 <body>
 
     <div id="unlock-screen">
         <h1>Food Memory Game</h1>
-        <h2>משחק הזיכרון: אוכל</h2>
-        <button class="btn-main" onclick="startGame()">START / התחל</button>
+        <button class="btn-start" onclick="initGame()">START</button>
     </div>
 
-    <div class="stats-bar">
-        <div id="matches">Matches: 0/8</div>
-        <div id="timer">Time: 00:00</div>
+    <div class="stats">
+        <span id="match-text">Matches: 0/8</span>
+        <span id="timer-text">00:00</span>
     </div>
 
     <div id="game-grid"></div>
 
-    <div id="win-modal" style="display:none;">
-        <h1 style="font-size: 3rem; color: var(--gold);">EXCELLENT!</h1>
-        <h2>כל הכבוד</h2>
-        <button class="btn-main" onclick="location.reload()">PLAY AGAIN / שחק שוב</button>
+    <div id="win-modal">
+        <h1 style="font-size: 3rem;">EXCELLENT!</h1>
+        <h2 style="font-size: 2rem;">כל הכבוד</h2>
+        <button class="btn-start" onclick="location.reload()">Play Again</button>
     </div>
 
     <script>
-        const foodItems = [
+        const foods = [
             {e:"🍎", n:"Apple", h:"תפוח"}, {e:"🍕", n:"Pizza", h:"פיצה"},
             {e:"🍔", n:"Burger", h:"המבורגר"}, {e:"🍦", n:"Ice Cream", h:"גלידה"},
             {e:"🍌", n:"Banana", h:"בננה"}, {e:"🥪", n:"Sandwich", h:"כריך"},
             {e:"🥕", n:"Carrot", h:"גזר"}, {e:"🍳", n:"Egg", h:"ביצה"}
         ];
 
-        let cards = [...foodItems, ...foodItems];
-        let flippedCards = [];
-        let matchedCount = 0;
-        let lockBoard = false;
-        let seconds = 0;
-        let timerRef;
+        let deck = [...foods, ...foods];
+        let choiceA = null, choiceB = null;
+        let busy = false;
+        let matches = 0;
+        let time = 0;
 
-        function startGame() {
+        function playSound(txt) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(txt);
+            msg.lang = 'en-US';
+            window.speechSynthesis.speak(msg);
+        }
+
+        function initGame() {
+            // Unlock Audio context
+            playSound(""); 
             document.getElementById('unlock-screen').style.display = 'none';
-            shuffle(cards);
-            createBoard();
-            startTimer();
-        }
-
-        function shuffle(array) {
-            array.sort(() => Math.random() - 0.5);
-        }
-
-        function startTimer() {
-            timerRef = setInterval(() => {
-                seconds++;
-                let m = Math.floor(seconds / 60).toString().padStart(2, '0');
-                let s = (seconds % 60).toString().padStart(2, '0');
-                document.getElementById('timer').innerText = `Time: ${m}:${s}`;
-            }, 1000);
-        }
-
-        function createBoard() {
+            
             const grid = document.getElementById('game-grid');
-            cards.forEach((item, index) => {
+            deck.sort(() => Math.random() - 0.5);
+
+            deck.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'memory-card';
-                card.dataset.name = item.n;
                 card.innerHTML = `
                     <div class="card-back">?</div>
                     <div class="card-front">
-                        <div class="food-emoji">${item.e}</div>
-                        <div class="food-name">${item.n}</div>
-                        <div class="food-name" style="font-weight:400; font-size:0.7rem;">${item.h}</div>
+                        <div class="emoji">${item.e}</div>
+                        <div class="name-en">${item.n}</div>
+                        <div class="name-he">${item.h}</div>
                     </div>
                 `;
-                card.addEventListener('click', flipCard);
+                card.dataset.name = item.n;
+                card.onclick = () => flip(card);
                 grid.appendChild(card);
             });
+
+            setInterval(() => {
+                time++;
+                let m = Math.floor(time/60).toString().padStart(2,'0');
+                let s = (time%60).toString().padStart(2,'0');
+                document.getElementById('timer-text').innerText = `${m}:${s}`;
+            }, 1000);
         }
 
-        function flipCard() {
-            if (lockBoard) return;
-            if (this === flippedCards[0]) return;
+        function flip(card) {
+            if (busy || card.classList.contains('flipped')) return;
 
-            this.classList.add('flipped');
-            flippedCards.push(this);
+            card.classList.add('flipped');
+            playSound(card.dataset.name);
 
-            if (flippedCards.length === 2) {
-                checkMatch();
+            if (!choiceA) {
+                choiceA = card;
+            } else {
+                choiceB = card;
+                check();
             }
         }
 
-        function checkMatch() {
-            lockBoard = true;
-            let isMatch = flippedCards[0].dataset.name === flippedCards[1].dataset.name;
+        function check() {
+            busy = true;
+            if (choiceA.dataset.name === choiceB.dataset.name) {
+                matches++;
+                document.getElementById('match-text').innerText = `Matches: ${matches}/8`;
+                choiceA = null; choiceB = null; busy = false;
 
-            if (isMatch) {
-                matchedCount++;
-                document.getElementById('matches').innerText = `Matches: ${matchedCount}/8`;
-                resetTurn();
-                if (matchedCount === 8) {
-                    clearInterval(timerRef);
-                    // 3 Second delay so they see the final match
+                if (matches === 8) {
+                    // 3 second delay to look at the board
                     setTimeout(() => {
-                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        confetti();
                         document.getElementById('win-modal').style.display = 'flex';
                     }, 3000);
                 }
             } else {
                 setTimeout(() => {
-                    flippedCards[0].classList.remove('flipped');
-                    flippedCards[1].classList.remove('flipped');
-                    resetTurn();
+                    choiceA.classList.remove('flipped');
+                    choiceB.classList.remove('flipped');
+                    choiceA = null; choiceB = null; busy = false;
                 }, 1000);
             }
-        }
-
-        function resetTurn() {
-            flippedCards = [];
-            lockBoard = false;
         }
     </script>
 </body>
